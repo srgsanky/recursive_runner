@@ -15,7 +15,7 @@ struct Cli {
     command: String,
 
     /// Ignore errors during execution
-    #[arg(short = 'i', long = "ignore-errors", default_value = "false")]
+    #[arg(short = 'i', long = "ignore-errors", default_value_t = false)]
     ignore_errors: bool,
 }
 
