@@ -1,5 +1,9 @@
+use atty::Stream;
 use clap::Parser;
-use colored::*;
+use colored::{
+    Color::{self, *},
+    Colorize,
+};
 use std::fs;
 use std::process::Command;
 use terminal_size::{terminal_size, Width};
@@ -15,16 +19,41 @@ struct Cli {
     ignore_errors: bool,
 }
 
+const DEFAULT_SEPARATOR_WIDTH: usize = 50;
+
+fn print_with_color(text: &str, color: Option<Color>, is_terminal: bool) {
+    if is_terminal {
+        match color {
+            Some(c) => println!("{}", text.color(c)),
+            None => println!("{}", text),
+        }
+    } else {
+        println!("{}", text);
+    }
+}
+
 fn main() {
     let cli = Cli::parse();
 
-    let terminal_width = if let Some((Width(w), _)) = terminal_size() {
-        w as usize
+    let is_terminal;
+    let terminal_width;
+
+    // Use color only if stdout is a terminal
+    if atty::is(Stream::Stdout) {
+        is_terminal = true;
+
+        terminal_width = if let Some((Width(w), _)) = terminal_size() {
+            w as usize
+        } else {
+            DEFAULT_SEPARATOR_WIDTH
+        };
     } else {
-        50
-    };
+        is_terminal = false;
+        terminal_width = DEFAULT_SEPARATOR_WIDTH;
+    }
+
     // Use U+2500 which appears as smooth line in terminals like wezterm that supports ligatures
-    let separator = "─".repeat(terminal_width as usize);
+    let separator = "─".repeat(terminal_width);
 
     if let Ok(entries) = fs::read_dir(".") {
         entries.for_each(|entry| {
@@ -36,8 +65,9 @@ fn main() {
                     if path_display_name.to_string().starts_with("./.") {
                         return;
                     }
-                    println!("{}", path_display_name.to_string().cyan().bold());
-                    println!("{}", separator.white());
+
+                    print_with_color(&path_display_name.to_string(), Some(Cyan), is_terminal);
+                    print_with_color(&separator, Some(White), is_terminal);
 
                     let output = Command::new("sh")
                         .arg("-c")
@@ -51,20 +81,21 @@ fn main() {
                         Ok(output) => {
                             if !output.status.success() && !cli.ignore_errors {
                                 println!("Status: {}", output.status.code().unwrap());
-                                println!("{}", separator.red());
+                                print_with_color(&separator, Some(Red), is_terminal);
                             }
 
                             if !output.stdout.is_empty() {
                                 print!("{}", String::from_utf8_lossy(&output.stdout));
-                                println!("{}", separator.white());
+                                print_with_color(&separator, Some(White), is_terminal);
                             }
 
                             if !output.stderr.is_empty() && !cli.ignore_errors {
-                                println!(
-                                    "{}",
-                                    String::from_utf8_lossy(&output.stderr).red().bold()
+                                print_with_color(
+                                    &String::from_utf8_lossy(&output.stderr),
+                                    Some(Red),
+                                    is_terminal,
                                 );
-                                println!("{}", separator.red());
+                                print_with_color(&separator, Some(Red), is_terminal);
                             }
                         }
                         Err(e) => eprintln!("Failed to execute command: {}", e),
