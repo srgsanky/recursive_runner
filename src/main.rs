@@ -17,6 +17,10 @@ struct Cli {
     /// Ignore errors during execution
     #[arg(short = 'i', long = "ignore-errors", default_value_t = false)]
     ignore_errors: bool,
+
+    /// Suppress output for directories with no stdout
+    #[arg(short = 'q', long = "quiet", default_value_t = false)]
+    quiet: bool,
 }
 
 const DEFAULT_SEPARATOR_WIDTH: usize = 50;
@@ -60,14 +64,11 @@ fn main() {
             if let Ok(entry) = entry {
                 let path = entry.path();
                 if path.is_dir() {
-                    let path_display_name = path.display();
+                    let path_display_name = path.display().to_string();
                     // Ignore hidden directories like .git
-                    if path_display_name.to_string().starts_with("./.") {
+                    if path_display_name.starts_with("./.") {
                         return;
                     }
-
-                    print_with_color(&path_display_name.to_string(), Some(Cyan), is_terminal);
-                    print_with_color(&separator, Some(White), is_terminal);
 
                     let output = Command::new("sh")
                         .arg("-c")
@@ -79,14 +80,33 @@ fn main() {
 
                     match output {
                         Ok(output) => {
+                            let mut is_output_something = false;
+
+                            if !(output.status.success()
+                                || output.stderr.is_empty()
+                                || cli.ignore_errors)
+                                || !output.stdout.is_empty()
+                                || !cli.quiet
+                            {
+                                print_with_color(
+                                    &path_display_name.to_string(),
+                                    Some(Cyan),
+                                    is_terminal,
+                                );
+                                print_with_color(&separator, Some(White), is_terminal);
+                                is_output_something = true;
+                            }
+
                             if !output.status.success() && !cli.ignore_errors {
                                 println!("Status: {}", output.status.code().unwrap());
                                 print_with_color(&separator, Some(Red), is_terminal);
+                                is_output_something = true;
                             }
 
                             if !output.stdout.is_empty() {
                                 print!("{}", String::from_utf8_lossy(&output.stdout));
                                 print_with_color(&separator, Some(White), is_terminal);
+                                is_output_something = true;
                             }
 
                             if !output.stderr.is_empty() && !cli.ignore_errors {
@@ -96,12 +116,23 @@ fn main() {
                                     is_terminal,
                                 );
                                 print_with_color(&separator, Some(Red), is_terminal);
+                                is_output_something = true;
+                            }
+
+                            if is_output_something {
+                                println!("\n")
                             }
                         }
-                        Err(e) => eprintln!("Failed to execute command: {}", e),
+                        Err(e) => {
+                            print_with_color(
+                                &path_display_name.to_string(),
+                                Some(Cyan),
+                                is_terminal,
+                            );
+                            print_with_color(&separator, Some(White), is_terminal);
+                            eprintln!("Failed to execute command: {}", e)
+                        }
                     }
-
-                    println!("\n")
                 }
             }
         });

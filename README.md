@@ -13,5 +13,11 @@ cargo install --path .
 
 ```bash
 rr 'git status'
+
+# Ignore errors
+rr -i 'git status'
+
+# Ignore errors and be quiet for directories that didn't produce any output
+rr -i -q 'git status'
 ```
 
