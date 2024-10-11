@@ -85,8 +85,10 @@ fn main() {
                             if !(output.status.success()
                                 || output.stderr.is_empty()
                                 || cli.ignore_errors)
+                            if !cli.quiet
+                                || (!output.status.success() && !cli.ignore_errors)
                                 || !output.stdout.is_empty()
-                                || !cli.quiet
+                                || (!output.stderr.is_empty() && !cli.ignore_errors)
                             {
                                 print_with_color(
                                     &path_display_name.to_string(),
