@@ -82,9 +82,6 @@ fn main() {
                         Ok(output) => {
                             let mut is_output_something = false;
 
-                            if !(output.status.success()
-                                || output.stderr.is_empty()
-                                || cli.ignore_errors)
                             if !cli.quiet
                                 || (!output.status.success() && !cli.ignore_errors)
                                 || !output.stdout.is_empty()
