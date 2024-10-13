@@ -26,5 +26,5 @@ rr -i -q 'git status'
 Setup git pre-push hook to prevent push a change that does not build.
 
 ```bash
-ln -s scripts/git-hooks/pre-push .git/hooks/pre-push
+ln -sf $(pwd)/scripts/git-hooks/pre-push .git/hooks/pre-push
 ```
