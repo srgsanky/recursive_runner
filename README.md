@@ -21,3 +21,10 @@ rr -i 'git status'
 rr -i -q 'git status'
 ```
 
+## Development
+
+Setup git pre-push hook to prevent push a change that does not build.
+
+```bash
+ln -s scripts/git-hooks/pre-push .git/hooks/pre-push
+```

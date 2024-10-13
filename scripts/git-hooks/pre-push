@@ -1,0 +1,13 @@
+#!/bin/bash
+# This is a git prepush hook to avoid pushing code that does not build.
+
+cargo build --release
+
+if [ $? -ne 0 ]; then
+    echo "cargo build failed, aborting push."
+    exit 1
+fi
+
+echo "cargo build succeeded, proceeding with push."
+exit 0
+
