@@ -33,12 +33,16 @@ Show diff of unpushed changes in the subdirectories
 
 ```bash
 rr -q 'git log --color -p origin/mainline..HEAD'
+# @{u} uses the current branch name
+rr -q 'git log --color -p @{u}..HEAD'
 ```
 
 Show one line log messages of unpushed changes
 
 ```bash
 rr -q 'git log --oneline origin/mainline..HEAD'
+# @{u} uses the current branch name
+rr -q 'git log --oneline @{u}..HEAD'
 ```
 
 ## Development
