@@ -21,6 +21,26 @@ rr -i 'git status'
 rr -i -q 'git status'
 ```
 
+## Common uses
+
+List all changes in the subdirectories
+
+```bash
+rr -q 'git -c color.status=always status -s'
+```
+
+Show diff of unpushed changes in the subdirectories
+
+```bash
+rr -q 'git log --color -p origin/mainline..HEAD'
+```
+
+Show one line log messages of unpushed changes
+
+```bash
+rr -q 'git log --oneline origin/mainline..HEAD'
+```
+
 ## Development
 
 Setup git pre-push hook to prevent push a change that does not build.
