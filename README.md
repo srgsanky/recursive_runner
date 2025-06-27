@@ -45,6 +45,14 @@ rr -q 'git log --oneline origin/mainline..HEAD'
 rr -q 'git log --oneline @{u}..HEAD'
 ```
 
+Run Cargo commands on rust projects
+
+```bash
+# Check for existence of Cargo.toml before running the commands
+rr -q '[ -f Cargo.toml ] && cargo fmt --all'
+rr -q '[ -f Cargo.toml ] && cargo clippy --workspace --release --all-targets --all-features --fix --allow-dirty --allow-staged'
+```
+
 ## Development
 
 Setup git pre-push hook to prevent push a change that does not build.
